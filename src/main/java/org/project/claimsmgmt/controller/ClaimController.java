@@ -13,12 +13,8 @@ import java.util.List;
 @RequestMapping("/claims")
 public class ClaimController {
 
-    private final ClaimService claimService;
-
     @Autowired
-    public ClaimController(ClaimService claimService) {
-        this.claimService = claimService;
-    }
+    private ClaimService claimService;
 
     @GetMapping
     public List<Claim> getAll() {
