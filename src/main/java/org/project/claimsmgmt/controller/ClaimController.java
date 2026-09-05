@@ -41,6 +41,7 @@ public class ClaimController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id) {
         boolean deleted = claimService.delete(id);
