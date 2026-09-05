@@ -1,4 +1,9 @@
-version: 0.1
+version: 0.2
+
+env:
+  exported-variables:
+    - IMAGE_TAG
+    - COMMIT_HASH
 
 phases:
   pre_build:
