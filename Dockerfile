@@ -1,4 +1,4 @@
-FROM openjdk:26-jdk-slim
+FROM openjdk:21-jdk-slim
 LABEL authors="ankitchobdar"
 
 # Application working directory
