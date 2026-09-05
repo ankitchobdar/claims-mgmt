@@ -2,6 +2,7 @@ version: 0.1
 
 env:
   variables:
+    AWS_ACCOUNT_ID: 027224425926
     IMAGE_REPO_NAME: claims-service
     IMAGE_TAG: latest
 
