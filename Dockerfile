@@ -1,4 +1,4 @@
-FROM openjdk:21-jdk-slim
+FROM public.ecr.aws/amazoncorretto/amazoncorretto:21
 LABEL authors="ankitchobdar"
 
 # Application working directory
