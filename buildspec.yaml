@@ -6,14 +6,8 @@ phases:
       - mvn clean install
       - echo Logging in to Amazon ECR...
       - aws --version
-      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID"
-      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/claims-service
-      - echo "REPOSITORY_URI=$REPOSITORY_URI"
-      - REGISTRY=${REPOSITORY_URI%/}
-      - echo "REGISTRY=$REGISTRY"
-      - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $REGISTRY
-
+      - REPOSITORY_URI=027224425926.dkr.ecr.ap-southeast-2.amazonaws.com/claims-service
+      - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 027224425926.dkr.ecr.ap-southeast-2.amazonaws.com/claims-service
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
