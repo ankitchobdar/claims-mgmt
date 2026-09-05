@@ -8,7 +8,9 @@ phases:
       - aws --version
       - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $REPOSITORY_URI
       - COMMIT_HASH=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c 1-7)
+      - COMMIT_HASH=${COMMIT_HASH:=latest}
       - IMAGE_TAG="build-${CODEBUILD_BUILD_NUMBER}-${COMMIT_HASH}"
+      - echo "IMAGE_TAG=$IMAGE_TAG"
   build:
     commands:
       - echo Build started on `date`
