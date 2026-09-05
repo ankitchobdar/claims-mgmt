@@ -1,19 +1,14 @@
 version: 0.1
 
-env:
-  variables:
-    AWS_ACCOUNT_ID: 027224425926
-    IMAGE_REPO_NAME: claims-service
-    IMAGE_TAG: latest
-
 phases:
   pre_build:
     commands:
       - mvn clean install
       - echo Logging in to Amazon ECR...
       - aws --version
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com
-      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/$IMAGE_REPO_NAME
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/claims-service
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
   build:
