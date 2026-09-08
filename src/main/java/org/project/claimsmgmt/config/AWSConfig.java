@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -35,7 +37,16 @@ public class AWSConfig {
             // Use the default provider chain (env, system props, profile, container, instance).
             // This will pick up environment variables (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) for local dev
             // and instance/task roles or container credentials in production.
-            builder.credentialsProvider(DefaultCredentialsProvider.create());
+            // Read value from environment variables for AWS credentials
+            String awsAccessKeyId = System.getenv("AWS_ACCESS_KEY_ID");
+            String awsSecretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY");
+            if (awsAccessKeyId != null && !awsAccessKeyId.isBlank() && awsSecretAccessKey != null && !awsSecretAccessKey.isBlank()) {
+                builder.credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(awsAccessKeyId, awsSecretAccessKey)));
+            } else {
+                // Use the default provider chain (env, system props, profile, container, instance)
+                builder.credentialsProvider(DefaultCredentialsProvider.builder().build());
+            }
 
             this.secretsManagerClient = builder.build();
     }

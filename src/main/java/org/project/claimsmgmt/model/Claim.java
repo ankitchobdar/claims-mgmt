@@ -1,6 +1,10 @@
 package org.project.claimsmgmt.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,16 +12,25 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Objects;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @EqualsAndHashCode
+@Entity
+@Table(name = "claims")
 public class Claim {
-    private String claimid;
+    @Id
+    @Column(name = "claim_id", nullable = false)
+    private String claimId;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate claimpaiddate;
-    private String claimstatus;
-    private BigDecimal claimamount;
+    @Column(name = "claim_paid_date")
+    private LocalDate claimPaidDate;
+
+    @Column(name = "claim_status")
+    private String claimStatus;
+
+    @Column(name = "claim_amount")
+    private BigDecimal claimAmount;
 }

@@ -34,7 +34,6 @@ public class ClaimController {
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    //Adding back put api
     @PutMapping("/{id}")
     public ResponseEntity<Claim> update(@PathVariable String id, @RequestBody Claim claim) {
         return claimService.update(id, claim)
