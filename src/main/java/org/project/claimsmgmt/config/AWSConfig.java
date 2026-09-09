@@ -8,7 +8,8 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
+//import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -45,7 +46,8 @@ public class AWSConfig {
                         AwsBasicCredentials.create(awsAccessKeyId, awsSecretAccessKey)));
             } else {
                 // Use the default provider chain (env, system props, profile, container, instance)
-                builder.credentialsProvider(DefaultCredentialsProvider.builder().build());
+                //builder.credentialsProvider(DefaultCredentialsProvider.create());
+                builder.credentialsProvider(ContainerCredentialsProvider.builder().build());
             }
 
             this.secretsManagerClient = builder.build();
