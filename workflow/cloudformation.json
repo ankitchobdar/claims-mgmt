@@ -1,0 +1,664 @@
+{
+  "Outputs": {
+    "ClusterName": {
+      "Value": {
+        "Ref": "ECSClusterName"
+      },
+      "Description": "The cluster used to create the service."
+    },
+    "ECSService": {
+      "Value": {
+        "Ref": "ECSService"
+      },
+      "Description": "The created service."
+    }
+  },
+  "Metadata": {
+    "AWSToolsMetrics": {
+      "IaC_Generator": "arn:aws:cloudformation:ap-southeast-2:027224425926:generatedTemplate/0bb1834b-6826-4686-bfe6-987ee91b785d"
+    }
+  },
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The template used to create an ECS Service from the ECS Console.",
+  "Parameters": {
+    "LoadBalancerName": {
+      "Default": "",
+      "Type": "String"
+    },
+    "SecurityGroupIDs": {
+      "Default": "sg-05eddb827af61ca1e",
+      "Type": "CommaDelimitedList"
+    },
+    "ECSServiceName": {
+      "Default": "claims-service-task-service-4jg9w8uv",
+      "Type": "String"
+    },
+    "VpcID": {
+      "Default": "vpc-0ad767fc827ec23fa",
+      "Type": "String"
+    },
+    "SubnetIDs": {
+      "Default": "subnet-00da1a59b8bbecb9a,subnet-072f733cdadf392cd,subnet-0851c464125897d3b",
+      "Type": "CommaDelimitedList"
+    },
+    "ECSClusterName": {
+      "Default": "claims-service-cluster",
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "ApiGatewayModelVC": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::ApiGateway::Model",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "RestApiId": "yuelwt138b",
+        "Description": "This is a default error schema model",
+        "ContentType": "application/json",
+        "Schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "title": "Error Schema",
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          }
+        },
+        "Name": "Error"
+      }
+    },
+    "CloudFrontCachePolicyLN": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::CloudFront::CachePolicy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Comment": "Policy with caching enabled. Supports Gzip and Brotli compression.",
+          "MinTTL": 1,
+          "MaxTTL": 31536000,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "none"
+            },
+            "EnableAcceptEncodingBrotli": true,
+            "HeadersConfig": {
+              "HeaderBehavior": "none"
+            },
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "EnableAcceptEncodingGzip": true
+          },
+          "DefaultTTL": 86400,
+          "Name": "Managed-CachingOptimized"
+        }
+      }
+    },
+    "AppConfigDeploymentStrategyT8": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::DeploymentStrategy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "ReplicateTo": "NONE",
+        "GrowthType": "EXPONENTIAL",
+        "Description": "AWS Recommended",
+        "DeploymentDurationInMinutes": 20,
+        "GrowthFactor": 10,
+        "FinalBakeTimeInMinutes": 10,
+        "Name": "AppConfig.Canary10Percent20Minutes"
+      }
+    },
+    "AppConfigExtensionGJ": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::Extension",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Description": "Sends events to the configured Amazon SNS topic when a deployment of configuration data in AppConfig is started, completed, or rolled back. Can be associated to the following resources in AppConfig: Application, Environment, Configuration Profile.",
+        "Parameters": {
+          "topicArn": {
+            "Required": true,
+            "Dynamic": false,
+            "Description": "ARN of the topic to use."
+          }
+        },
+        "Actions": {
+          "ON_DEPLOYMENT_START": [
+            {
+              "Description": "Publishes a message that a deployment of configuration data has started.",
+              "Name": "NotifyOnDeploymentStart"
+            }
+          ],
+          "ON_DEPLOYMENT_COMPLETE": [
+            {
+              "Description": "Publishes a message that a deployment of configuration data has completed.",
+              "Name": "NotifyOnDeploymentComplete"
+            }
+          ],
+          "ON_DEPLOYMENT_ROLLED_BACK": [
+            {
+              "Description": "Publishes a message that a deployment of configuration data has rolled back.",
+              "Name": "NotifyOnDeploymentRolledBack"
+            }
+          ]
+        },
+        "Name": "AppConfig deployment events to Amazon SNS"
+      }
+    },
+    "ApiGatewayRestApi": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::ApiGateway::RestApi",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Description": "API gateway for claims service",
+        "SecurityPolicy": "SecurityPolicy_TLS13_1_2_2021_06",
+        "ApiKeySourceType": "HEADER",
+        "EndpointConfiguration": {
+          "IpAddressType": "ipv4",
+          "Types": [
+            "REGIONAL"
+          ]
+        },
+        "DisableExecuteApiEndpoint": false,
+        "Name": "claims-service-api-gateway",
+        "EndpointAccessMode": "BASIC"
+      }
+    },
+    "CloudFrontCachePolicyF3": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::CloudFront::CachePolicy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Comment": "Policy for Amplify Origin",
+          "MinTTL": 2,
+          "MaxTTL": 600,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "all"
+            },
+            "EnableAcceptEncodingBrotli": true,
+            "HeadersConfig": {
+              "HeaderBehavior": "whitelist",
+              "Headers": [
+                "Authorization",
+                "CloudFront-Viewer-Country",
+                "Host"
+              ]
+            },
+            "CookiesConfig": {
+              "CookieBehavior": "all"
+            },
+            "EnableAcceptEncodingGzip": true
+          },
+          "DefaultTTL": 2,
+          "Name": "Managed-Amplify"
+        }
+      }
+    },
+    "CloudFrontCachePolicy": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::CloudFront::CachePolicy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Comment": "Policy for Elemental MediaPackage Origin",
+          "MinTTL": 0,
+          "MaxTTL": 31536000,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "QueryStringsConfig": {
+              "QueryStrings": [
+                "aws.manifestfilter",
+                "start",
+                "end",
+                "m"
+              ],
+              "QueryStringBehavior": "whitelist"
+            },
+            "EnableAcceptEncodingBrotli": false,
+            "HeadersConfig": {
+              "HeaderBehavior": "whitelist",
+              "Headers": [
+                "origin"
+              ]
+            },
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "EnableAcceptEncodingGzip": true
+          },
+          "DefaultTTL": 86400,
+          "Name": "Managed-Elemental-MediaPackage"
+        }
+      }
+    },
+    "AthenaWorkGroupPrimary": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::Athena::WorkGroup",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "WorkGroupConfiguration": {
+          "RequesterPaysEnabled": false,
+          "EnforceWorkGroupConfiguration": false,
+          "EngineVersion": {
+            "SelectedEngineVersion": "AUTO"
+          },
+          "PublishCloudWatchMetricsEnabled": true,
+          "ResultConfiguration": {}
+        },
+        "State": "ENABLED",
+        "Tags": [],
+        "Name": "primary"
+      }
+    },
+    "AppConfigDeploymentStrategyGA": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::DeploymentStrategy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "ReplicateTo": "NONE",
+        "GrowthType": "LINEAR",
+        "Description": "AWS Recommended",
+        "DeploymentDurationInMinutes": 30,
+        "GrowthFactor": 20,
+        "FinalBakeTimeInMinutes": 30,
+        "Name": "AppConfig.Linear20PercentEvery6Minutes"
+      }
+    },
+    "AppConfigExtensionGQ": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::Extension",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Actions": {
+          "PRE_CREATE_HOSTED_CONFIGURATION_VERSION": [
+            {
+              "Description": "Verifies the feature flag data and attributes satisfy their constraints.",
+              "Name": "Verify"
+            }
+          ],
+          "PRE_START_DEPLOYMENT": [
+            {
+              "Description": "Transforms the feature flag data into to just what's needed by the client.",
+              "Name": "Transform"
+            }
+          ]
+        },
+        "Description": "Validates AppConfig feature flag data automatically against a JSON schema that includes structure and constraints. Also transforms feature flag data prior to sending to the client. This extension is automatically associated to configuration profiles with type \"AWS.AppConfig.FeatureFlags\".",
+        "Name": "AppConfig Feature Flags Helper"
+      }
+    },
+    "CloudFormationStack": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::CloudFormation::Stack",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Description": "The template used to create an ECS Service from the ECS Console.",
+        "Parameters": {
+          "LoadBalancerName": "",
+          "SecurityGroupIDs": "sg-05eddb827af61ca1e",
+          "ECSServiceName": "claims-service-task-service-4jg9w8uv",
+          "VpcID": "vpc-0ad767fc827ec23fa",
+          "SubnetIDs": "subnet-00da1a59b8bbecb9a,subnet-072f733cdadf392cd,subnet-0851c464125897d3b",
+          "ECSClusterName": "claims-service-cluster"
+        },
+        "Capabilities": [
+          "CAPABILITY_NAMED_IAM"
+        ],
+        "EnableTerminationProtection": false,
+        "TemplateBody": {
+          "Outputs": {
+            "ClusterName": {
+              "Value": {
+                "Ref": "ECSClusterName"
+              },
+              "Description": "The cluster used to create the service."
+            },
+            "ECSService": {
+              "Value": {
+                "Ref": "ECSService"
+              },
+              "Description": "The created service."
+            }
+          },
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The template used to create an ECS Service from the ECS Console.",
+          "Parameters": {
+            "LoadBalancerName": {
+              "Default": "",
+              "Type": "String"
+            },
+            "SecurityGroupIDs": {
+              "Default": "sg-05eddb827af61ca1e",
+              "Type": "CommaDelimitedList"
+            },
+            "ECSServiceName": {
+              "Default": "claims-service-task-service-4jg9w8uv",
+              "Type": "String"
+            },
+            "VpcID": {
+              "Default": "vpc-0ad767fc827ec23fa",
+              "Type": "String"
+            },
+            "SubnetIDs": {
+              "Default": "subnet-00da1a59b8bbecb9a,subnet-072f733cdadf392cd,subnet-0851c464125897d3b",
+              "Type": "CommaDelimitedList"
+            },
+            "ECSClusterName": {
+              "Default": "claims-service-cluster",
+              "Type": "String"
+            }
+          },
+          "Resources": {
+            "ECSService": {
+              "Properties": {
+                "PlatformVersion": "LATEST",
+                "EnableECSManagedTags": true,
+                "EnableExecuteCommand": false,
+                "Cluster": "claims-service-cluster",
+                "ServiceConnectConfiguration": {
+                  "Enabled": false
+                },
+                "DesiredCount": 1,
+                "DeploymentController": {
+                  "Type": "ECS"
+                },
+                "LaunchType": "FARGATE",
+                "AvailabilityZoneRebalancing": "ENABLED",
+                "TaskDefinition": "arn:aws:ecs:ap-southeast-2:027224425926:task-definition/claims-service-task:1",
+                "SchedulingStrategy": "REPLICA",
+                "ServiceName": "claims-service-task-service-4jg9w8uv",
+                "NetworkConfiguration": {
+                  "AwsvpcConfiguration": {
+                    "SecurityGroups": {
+                      "Ref": "SecurityGroupIDs"
+                    },
+                    "Subnets": {
+                      "Ref": "SubnetIDs"
+                    },
+                    "AssignPublicIp": "ENABLED"
+                  }
+                },
+                "DeploymentConfiguration": {
+                  "Strategy": "ROLLING",
+                  "DeploymentCircuitBreaker": {
+                    "Enable": true,
+                    "ResetOnHealthyTask": false,
+                    "Rollback": true,
+                    "ThresholdConfiguration": {
+                      "Value": 50,
+                      "Type": "BOUNDED_PERCENT"
+                    }
+                  },
+                  "MaximumPercent": 200,
+                  "MinimumHealthyPercent": 100
+                },
+                "Tags": []
+              },
+              "Type": "AWS::ECS::Service"
+            }
+          }
+        },
+        "DisableRollback": true,
+        "StackName": "ECS-Console-V2-Service-claims-service-task-service-4jg9w8uv-claims-service-cluster-7a899cb2"
+      }
+    },
+    "ECSService": {
+      "Properties": {
+        "PlatformVersion": "LATEST",
+        "EnableECSManagedTags": true,
+        "EnableExecuteCommand": false,
+        "Cluster": "claims-service-cluster",
+        "ServiceConnectConfiguration": {
+          "Enabled": false
+        },
+        "DesiredCount": 1,
+        "DeploymentController": {
+          "Type": "ECS"
+        },
+        "LaunchType": "FARGATE",
+        "AvailabilityZoneRebalancing": "ENABLED",
+        "TaskDefinition": "arn:aws:ecs:ap-southeast-2:027224425926:task-definition/claims-service-task:1",
+        "SchedulingStrategy": "REPLICA",
+        "ServiceName": "claims-service-task-service-4jg9w8uv",
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "SecurityGroups": {
+              "Ref": "SecurityGroupIDs"
+            },
+            "Subnets": {
+              "Ref": "SubnetIDs"
+            },
+            "AssignPublicIp": "ENABLED"
+          }
+        },
+        "DeploymentConfiguration": {
+          "Strategy": "ROLLING",
+          "DeploymentCircuitBreaker": {
+            "Enable": true,
+            "ResetOnHealthyTask": false,
+            "Rollback": true,
+            "ThresholdConfiguration": {
+              "Value": 50,
+              "Type": "BOUNDED_PERCENT"
+            }
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 100
+        },
+        "Tags": []
+      },
+      "Type": "AWS::ECS::Service"
+    },
+    "AppConfigDeploymentStrategyVd": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::DeploymentStrategy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "ReplicateTo": "NONE",
+        "GrowthType": "LINEAR",
+        "Description": "Test/Demo",
+        "DeploymentDurationInMinutes": 1,
+        "GrowthFactor": 50,
+        "FinalBakeTimeInMinutes": 1,
+        "Name": "AppConfig.Linear50PercentEvery30Seconds"
+      }
+    },
+    "ApiGatewayResource": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::ApiGateway::Resource",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "RestApiId": "yuelwt138b"
+      }
+    },
+    "AppConfigExtensionJ2": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::Extension",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Actions": {
+          "ON_DEPLOYMENT_START": [
+            {
+              "Description": "Updates Jira issues when an AppConfig feature flag deployment starts.",
+              "Name": "UpdateJiraIssuesThatDeploymentStarted"
+            }
+          ],
+          "PRE_CREATE_HOSTED_CONFIGURATION_VERSION": [
+            {
+              "Description": "Creates or updates JIRA issues with the value of each new or updated feature flag in the configuration profile.",
+              "Name": "CreateOrUpdateJiraIssues"
+            }
+          ],
+          "ON_DEPLOYMENT_COMPLETE": [
+            {
+              "Description": "Updates Jira issues when an AppConfig feature flag deployment completes.",
+              "Name": "UpdateJiraIssuesThatDeploymentCompleted"
+            }
+          ],
+          "ON_DEPLOYMENT_ROLLED_BACK": [
+            {
+              "Description": "Updates Jira issues when an AppConfig feature flag deployment rolls back.",
+              "Name": "UpdateJiraIssuesThatDeploymentRolledBack"
+            }
+          ],
+          "PRE_START_DEPLOYMENT": [
+            {
+              "Description": "Identifies the flags that are being changed by the deployment to the specified environment.",
+              "Name": "IdentifyFlagChangesForEnvironment"
+            }
+          ]
+        },
+        "Description": "Exports feature flag data from AWS AppConfig into Jira. The lifecycle of each feature flag in AppConfig is tracked in Jira as an individual issue. Customers can see in Jira when flags are updated, turned on or off. Works in conjunction with the AppConfig app in the Atlassian Marketplace and is automatically associated to configuration profiles configured within that app.",
+        "Name": "AppConfig integration with Atlassian Jira"
+      }
+    },
+    "AppConfigExtensionFJ": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::Extension",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Actions": {
+          "PRE_START_DEPLOYMENT": [
+            {
+              "Description": "",
+              "Name": "Export Project data"
+            }
+          ]
+        },
+        "Description": "Imports Evidently Project data for use with its client-side evaluation feature, powered by AppConfig. This extension is automatically associated to ConfigurationProfiles created by Evidently.",
+        "Name": "Amazon CloudWatch Evidently Project importer"
+      }
+    },
+    "AppConfigDeploymentStrategy": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::DeploymentStrategy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "ReplicateTo": "NONE",
+        "GrowthType": "LINEAR",
+        "Description": "Quick",
+        "DeploymentDurationInMinutes": 0,
+        "GrowthFactor": 100,
+        "FinalBakeTimeInMinutes": 10,
+        "Name": "AppConfig.AllAtOnce"
+      }
+    },
+    "CloudFrontCachePolicyLD": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::CloudFront::CachePolicy",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Comment": "Default Amplify cache policy",
+          "MinTTL": 0,
+          "MaxTTL": 31536000,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "all"
+            },
+            "EnableAcceptEncodingBrotli": true,
+            "HeadersConfig": {
+              "HeaderBehavior": "whitelist",
+              "Headers": [
+                "Authorization",
+                "RSC",
+                "Accept",
+                "CloudFront-Viewer-Country",
+                "X-Amplify-Dpl",
+                "Host"
+              ]
+            },
+            "CookiesConfig": {
+              "CookieBehavior": "all"
+            },
+            "EnableAcceptEncodingGzip": true
+          },
+          "DefaultTTL": 0,
+          "Name": "Managed-Amplify-Default-V2"
+        }
+      }
+    },
+    "ApiGatewayModel": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::ApiGateway::Model",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "RestApiId": "yuelwt138b",
+        "Description": "This is a default empty schema model",
+        "ContentType": "application/json",
+        "Schema": {
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "title": "Empty Schema",
+          "type": "object"
+        },
+        "Name": "Empty"
+      }
+    },
+    "AppConfigExtension": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::Extension",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Actions": {
+          "ON_DEPLOYMENT_START": [
+            {
+              "Description": "Sends an event that a deployment of configuration data has started.",
+              "Name": "NotifyOnDeploymentStart"
+            }
+          ],
+          "ON_DEPLOYMENT_COMPLETE": [
+            {
+              "Description": "Sends an event that a deployment of configuration data has completed.",
+              "Name": "NotifyOnDeploymentComplete"
+            }
+          ],
+          "ON_DEPLOYMENT_ROLLED_BACK": [
+            {
+              "Description": "Sends an event that a deployment of configuration data has rolled back.",
+              "Name": "NotifyOnDeploymentRolledBack"
+            }
+          ]
+        },
+        "Description": "Sends events to Amazon EventBridge when a deployment of configuration data in AppConfig is started, completed, or rolled back. Can be associated to the following resources in AppConfig: Application, Environment, Configuration Profile.",
+        "Name": "AppConfig deployment events to Amazon EventBridge"
+      }
+    },
+    "AppConfigExtensionIu": {
+      "UpdateReplacePolicy": "Retain",
+      "Type": "AWS::AppConfig::Extension",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "Description": "Sends messages to the configured Amazon SQS queue when a deployment of configuration data in AppConfig is started, completed, or rolled back. Can be associated to the following resources in AppConfig: Application, Environment, Configuration Profile.",
+        "Parameters": {
+          "queueArn": {
+            "Required": true,
+            "Dynamic": false,
+            "Description": "ARN of the queue to use."
+          }
+        },
+        "Actions": {
+          "ON_DEPLOYMENT_START": [
+            {
+              "Description": "Sends a message that a deployment of configuration data has started.",
+              "Name": "NotifyOnDeploymentStart"
+            }
+          ],
+          "ON_DEPLOYMENT_COMPLETE": [
+            {
+              "Description": "Sends a message that a deployment of configuration data has completed.",
+              "Name": "NotifyOnDeploymentComplete"
+            }
+          ],
+          "ON_DEPLOYMENT_ROLLED_BACK": [
+            {
+              "Description": "Sends a message that a deployment of configuration data has rolled back.",
+              "Name": "NotifyOnDeploymentRolledBack"
+            }
+          ]
+        },
+        "Name": "AppConfig deployment events to Amazon SQS"
+      }
+    }
+  }
+}
